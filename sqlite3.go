@@ -2256,7 +2256,7 @@ func (rc *SQLiteRows) Next(dest []driver.Value) error {
 // nextSyncLocked moves cursor to next; must be called with locked mutex.
 func (rc *SQLiteRows) nextSyncLocked(dest []driver.Value) error {
 	rv := C._sqlite3_step_internal(rc.s.s)
-	if rv == C.SQLITE_DONE {
+	if rv == C.SQLITE_DONE || rv == C.SQLITE_MISUSE {
 		return io.EOF
 	}
 	if rv != C.SQLITE_ROW {
