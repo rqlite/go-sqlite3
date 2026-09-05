@@ -4,7 +4,6 @@
 // license that can be found in the LICENSE file.
 
 //go:build cgo
-// +build cgo
 
 package sqlite3
 
@@ -49,6 +48,14 @@ func BenchmarkHandleLookupBeforeAfter(b *testing.B) {
 			return after.lookup(handle).val
 		})
 	})
+
+	var syncTable syncMapHandleTable
+	syncTable.vals.Store(handle, value)
+	b.Run("sync_map", func(b *testing.B) {
+		benchmarkHandleLookupParallel(b, func() any {
+			return syncTable.lookup(handle).val
+		})
+	})
 }
 
 func benchmarkHandleLookupParallel(b *testing.B, lookup func() any) {
@@ -73,6 +80,18 @@ func (t *mutexHandleTable) lookup(handle unsafe.Pointer) handleVal {
 	t.mu.Lock()
 	defer t.mu.Unlock()
 	return t.vals[handle]
+}
+
+type syncMapHandleTable struct {
+	vals sync.Map
+}
+
+func (t *syncMapHandleTable) lookup(handle unsafe.Pointer) handleVal {
+	v, ok := t.vals.Load(handle)
+	if !ok {
+		return handleVal{}
+	}
+	return v.(handleVal)
 }
 
 type atomicHandleTable struct {
