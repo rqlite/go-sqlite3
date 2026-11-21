@@ -10,7 +10,7 @@ import (
 	"database/sql"
 	"testing"
 
-	_ "github.com/mattn/go-sqlite3"
+	_ "github.com/rqlite/go-sqlite3"
 )
 
 func TestExecTrailingCommentOrSemicolonKeepsResult(t *testing.T) {
